@@ -1,3 +1,38 @@
+# Golioth App
+
+This is an example Golioth app, based on the UDP client app.
+
+If you haven't created an account or set up any devices with Golioth, head
+over to [golioth.io](https://golioth.io/) and click on "Get Started".
+Instructions for creating new projects and devices can be found in the
+[Golioth Console docs](https://docs.golioth.io/golioth-console).
+
+Before compiling the app, make sure to set the WiFi SSID and password as
+well as your Golioth PSK-ID and PSK, in `golioth_main.h`:
+
+```c
+#define WIFI_SSID "WiFiSSID"
+#define WIFI_PASSWORD "WiFiPassword"
+#define GOLIOTH_PSK_ID "device@project"
+#define GOLIOTH_PSK "supersecret"
+```
+
+After compiling and running, you should see a output similar to the following:
+
+```
+Wi-Fi Connection Manager initialized.
+Successfully connected to Wi-Fi network 'WiFiSSID'.
+IP Address Assigned: 192.168.86.250
+Secure Sockets initialized
+I (5545) golioth_coap_client: Start CoAP session with host: coaps://coap.golioth.io
+I (5550) libcoap: Setting PSK key
+I (5556) golioth_coap_client: Entering CoAP I/O loop
+I (5848) golioth_main: Golioth client connected
+```
+
+What follows in the remainder of this README is from the UDP client app,
+but it should mostly apply since the Golioth app is based on it.
+
 # UDP client
 
 This code example demonstrates the implementation of a UDP client with PSoC&trade; 6 MCU and AIROC&trade; CYW43xxx Wi-Fi & Bluetooth&reg; connectivity devices. The example establishes a connection with a remote UDP server, and based on the command received from the UDP server, turns the user LED ON or OFF.
@@ -210,8 +245,8 @@ If using a PSoC&trade; 64 "Secure" MCU kit (like CY8CKIT-064B0S2-4343W), the PSo
 
     ![](images/udp-server-output.png)
 
-      <br> 
-        
+      <br>
+
     **Figure 3. LED status on UDP client**
 
     ![](images/udp-client-output.png)

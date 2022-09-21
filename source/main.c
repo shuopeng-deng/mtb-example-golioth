@@ -1,10 +1,8 @@
 /******************************************************************************
 * File Name:   main.c
 *
-* Description: This is the source code for UDP Client Example in ModusToolbox.
-*              The example establishes a connection with a remote UDP server
-*              and based on the command received from the UDP server, turns
-*              the user LED ON or OFF.
+* Description: This is the source code for Golioth App Example in ModusToolbox.
+*              The example establishes a connection with the Golioth server.
 *
 * Related Document: See README.md
 *
@@ -50,8 +48,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-/* UDP client task header file. */
-#include "udp_client.h"
+#include "golioth_main.h"
 
 /* Include serial flash library and QSPI memory configurations only for the
  * kits that require the Wi-Fi firmware to be loaded in external QSPI NOR flash.
@@ -65,15 +62,8 @@
 * Macros
 ********************************************************************************/
 /* RTOS related macros. */
-#define UDP_CLIENT_TASK_STACK_SIZE        (5 * 1024)
-#define UDP_CLIENT_TASK_PRIORITY          (1)
-
-/*******************************************************************************
-* Global Variables
-********************************************************************************/
-
-/* UDP server task handle. */
-TaskHandle_t client_task_handle;
+#define GOLIOTH_MAIN_TASK_STACK_SIZE        (5 * 1024)
+#define GOLIOTH_MAIN_TASK_PRIORITY          (1)
 
 /*******************************************************************************
 * Function Name: main
@@ -122,12 +112,13 @@ int main(void)
     /* \x1b[2J\x1b[;H - ANSI ESC sequence to clear screen. */
     printf("\x1b[2J\x1b[;H");
     printf("============================================================\n");
-    printf("CE230437 - UDP Client\n");
+    printf("CE230437 - Golioth\n");
     printf("============================================================\n\n");
 
     /* Create the tasks. */
-    xTaskCreate(udp_client_task, "Network task", UDP_CLIENT_TASK_STACK_SIZE, NULL,
-                UDP_CLIENT_TASK_PRIORITY, &client_task_handle);
+    xTaskCreate(golioth_main_task, "Golioth main task", GOLIOTH_MAIN_TASK_STACK_SIZE, NULL,
+                GOLIOTH_MAIN_TASK_PRIORITY, NULL);
+
     /* Start the FreeRTOS scheduler. */
     vTaskStartScheduler();
 

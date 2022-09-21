@@ -1,7 +1,7 @@
 /******************************************************************************
-* File Name:   udp_client.h
+* File Name:   golioth_main.h
 *
-* Description: This file contains declaration of task related to UDP client
+* Description: This file contains declaration of task related to Golioth main
 *              operation.
 *
 ********************************************************************************
@@ -37,8 +37,8 @@
 * so agrees to indemnify Cypress against all liability.
 *******************************************************************************/
 
-#ifndef UDP_CLIENT_H_
-#define UDP_CLIENT_H_
+#ifndef GOLIOTH_MAIN_H_
+#define GOLIOTH_MAIN_H_
 
 /*******************************************************************************
 * Macros
@@ -49,8 +49,16 @@
  * CY_WCM_MAX_SSID_LEN and CY_WCM_MAX_PASSPHRASE_LEN as defined in cy_wcm.h file.
  */
 
-#define WIFI_SSID                         "MY_WIFI_SSID"
-#define WIFI_PASSWORD                     "MY_WIFI_PASSWORD"
+#define WIFI_SSID "WiFiSSID"
+#define WIFI_PASSWORD "WiFiPassword"
+
+/*
+ * Fill in with your Golioth credentials
+ *
+ * These can be found at console.golioth.io -> Devices -> (yourdevice) -> Credentials
+ */
+#define GOLIOTH_PSK_ID "yourdevice@yourproject"
+#define GOLIOTH_PSK "supersecret"
 
 /* Security type of the Wi-Fi access point. See 'cy_wcm_security_t' structure
  * in "cy_wcm.h" for more details.
@@ -63,22 +71,11 @@
 /* Wi-Fi re-connection time interval in milliseconds */
 #define WIFI_CONN_RETRY_INTERVAL_MSEC     (1000)
 
-#define MAKE_IPV4_ADDRESS(a, b, c, d)     ((((uint32_t) d) << 24) | \
-                                          (((uint32_t) c) << 16) | \
-                                          (((uint32_t) b) << 8) |\
-                                          ((uint32_t) a))
-
-/* Change the server IP address to match the UDP server address (IP address
- * of the PC).
- */
-#define UDP_SERVER_IP_ADDRESS             MAKE_IPV4_ADDRESS(192, 168, 1, 107)
-#define UDP_SERVER_PORT                   (57345)
-
 /*******************************************************************************
 * Function Prototype
 ********************************************************************************/
-void udp_client_task(void *arg);
+void golioth_main_task(void *arg);
 
-#endif /* UDP_CLIENT_H_ */
+#endif /* GOLIOTH_MAIN_H_ */
 
 /* [] END OF FILE */
