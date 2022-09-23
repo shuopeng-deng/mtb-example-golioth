@@ -1,13 +1,13 @@
 /******************************************************************************
 * File Name:   main.c
 *
-* Description: This is the source code for Golioth App Example in ModusToolbox.
-*              The example establishes a connection with the Golioth server.
+* Description: This is the source code for the CE230650 - PSoC 6 MCU: MCUboot-
+*              Based Basic Bootloader code example for ModusToolbox.
 *
 * Related Document: See README.md
 *
-********************************************************************************
-* Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
+*******************************************************************************
+* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -39,83 +39,83 @@
 * so agrees to indemnify Cypress against all liability.
 *******************************************************************************/
 
-/* Header file includes. */
-#include "cyhal.h"
 #include "cybsp.h"
+#include "cyhal.h"
 #include "cy_retarget_io.h"
-
-/* FreeRTOS header file. */
+#include "bootutil/bootutil.h"
+#include "watchdog.h"
 #include <FreeRTOS.h>
 #include <task.h>
-
 #include "golioth_main.h"
 
-/* Include serial flash library and QSPI memory configurations only for the
- * kits that require the Wi-Fi firmware to be loaded in external QSPI NOR flash.
- */
-#if defined(TARGET_CY8CPROTO_062S3_4343W)
-#include "cy_serial_flash_qspi.h"
-#include "cycfg_qspi_memslot.h"
-#endif
+#define LED_TOGGLE_INTERVAL_MS         (1000u)
 
-/*******************************************************************************
-* Macros
-********************************************************************************/
-/* RTOS related macros. */
+#define BLINK_TASK_STACK_SIZE               (3 * 1024)
+#define BLINK_TASK_PRIORITY                 (1)
+
 #define GOLIOTH_MAIN_TASK_STACK_SIZE        (5 * 1024)
 #define GOLIOTH_MAIN_TASK_PRIORITY          (1)
 
-/*******************************************************************************
-* Function Name: main
-********************************************************************************
-* Summary:
-*  System entrance point. This function sets up user tasks and then starts
-*  the RTOS scheduler.
-*
-* Parameters:
-*  void
-*
-* Return:
-*  int
-*
-*******************************************************************************/
+static void blink_task(void* arg) {
+    for (;;)
+    {
+        vTaskDelay(LED_TOGGLE_INTERVAL_MS / portTICK_PERIOD_MS);
+        cyhal_gpio_toggle(CYBSP_USER_LED);
+    }
+}
+
+/******************************************************************************
+ * Function Name: main
+ ******************************************************************************
+ * Summary:
+ *  System entrance point. This function initializes system resources &
+ *  peripherals, initializes retarget IO, and toggles the user LED at a
+ *  configured interval.
+ *
+ * Parameters:
+ *  void
+ *
+ * Return:
+ *  int
+ *
+ ******************************************************************************/
 int main(void)
 {
     cy_rslt_t result;
 
     /* Initialize the device and board peripherals */
     result = cybsp_init();
-    if (result != CY_RSLT_SUCCESS)
-    {
-        CY_ASSERT(0);
-    }
+    CY_ASSERT(result == CY_RSLT_SUCCESS);
 
     /* Enable global interrupts */
     __enable_irq();
 
     /* Initialize retarget-io to use the debug UART port */
-    cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
+    result = cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
+    CY_ASSERT(result == CY_RSLT_SUCCESS);
 
     /* Initialize the User LED */
-    cyhal_gpio_init(CYBSP_USER_LED, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, CYBSP_LED_STATE_OFF);
+    result = cyhal_gpio_init(CYBSP_USER_LED, CYHAL_GPIO_DIR_OUTPUT,
+              CYHAL_GPIO_DRIVE_STRONG, CYBSP_LED_STATE_OFF);
+    CY_ASSERT(result == CY_RSLT_SUCCESS);
 
-    /* Init QSPI and enable XIP to get the Wi-Fi firmware from the QSPI NOR flash */
-    #if defined(TARGET_CY8CPROTO_062S3_4343W)
-    const uint32_t bus_frequency = 50000000lu;
-    cy_serial_flash_qspi_init(smifMemConfigs[0], CYBSP_QSPI_D0, CYBSP_QSPI_D1,
-                                  CYBSP_QSPI_D2, CYBSP_QSPI_D3, NC, NC, NC, NC,
-                                  CYBSP_QSPI_SCK, CYBSP_QSPI_SS, bus_frequency);
+    (void) result; /* To avoid compiler warning in release build */
 
-    cy_serial_flash_qspi_enable_xip(true);
-    #endif
+    printf("\n=========================================================\n");
+    printf("[GoliothApp] Version: %d.%d.%d, CPU: CM4\n",
+           APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_BUILD);
+    printf("\n=========================================================\n");
 
-    /* \x1b[2J\x1b[;H - ANSI ESC sequence to clear screen. */
-    printf("\x1b[2J\x1b[;H");
-    printf("============================================================\n");
-    printf("CE230437 - Golioth\n");
-    printf("============================================================\n\n");
+    /* Update watchdog timer to mark successful start up of application */
+    cy_wdg_kick();
+    cy_wdg_free();
+    printf("[GoliothApp] Watchdog timer started by the bootloader is now turned off to mark the successful start of Golioth app.\r\n");
+
+    printf("[GoliothApp] User LED toggles at %d msec interval\r\n\n", LED_TOGGLE_INTERVAL_MS);
 
     /* Create the tasks. */
+    xTaskCreate(blink_task, "Blink task", BLINK_TASK_STACK_SIZE, NULL,
+                BLINK_TASK_PRIORITY, NULL);
     xTaskCreate(golioth_main_task, "Golioth main task", GOLIOTH_MAIN_TASK_STACK_SIZE, NULL,
                 GOLIOTH_MAIN_TASK_PRIORITY, NULL);
 
@@ -124,6 +124,16 @@ int main(void)
 
     /* Should never get here. */
     CY_ASSERT(0);
+
+    for (;;)
+    {
+        /* Toggle the user LED periodically */
+        cyhal_system_delay_ms(LED_TOGGLE_INTERVAL_MS);
+        cyhal_gpio_toggle(CYBSP_USER_LED);
+    }
+
+    return 0;
 }
 
 /* [] END OF FILE */
+

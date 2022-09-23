@@ -1,3 +1,5 @@
+$(SEARCH_mcuboot)
+
 $(SEARCH_libcoap)/examples
 $(SEARCH_libcoap)/tests
 $(SEARCH_libcoap)/ext
