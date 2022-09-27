@@ -667,9 +667,7 @@ def main():
                            'FLASH_AREA_IMAGE_SCRATCH',
                            scratch.fa_addr, scratch.fa_size)
 
-    # Image id parameter is not used for MCUBootApp
-    if params.img_id is None:
-        area_list.generate_c_source(params)
+    area_list.generate_c_source(params)
 
     # Report necessary values back to make
     print('# AUTO-GENERATED FILE, DO NOT EDIT. ALL CHANGES WILL BE LOST!')

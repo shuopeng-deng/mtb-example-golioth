@@ -42,13 +42,19 @@
 #include "cybsp.h"
 #include "cyhal.h"
 #include "cy_retarget_io.h"
-#include "bootutil/bootutil.h"
 #include "watchdog.h"
 #include <FreeRTOS.h>
-#include <task.h>
 #include "golioth_main.h"
+#include <task.h>
+#include <inttypes.h>
 
-#define LED_TOGGLE_INTERVAL_MS         (1000u)
+#ifdef CY_BOOT_USE_EXTERNAL_FLASH
+#include "flash_qspi.h"
+#endif
+
+#define QSPI_SLAVE_SELECT_LINE              (1UL)
+
+#define LED_TOGGLE_INTERVAL_MS              (1000u)
 
 #define BLINK_TASK_STACK_SIZE               (3 * 1024)
 #define BLINK_TASK_PRIORITY                 (1)
@@ -93,6 +99,15 @@ int main(void)
     /* Initialize retarget-io to use the debug UART port */
     result = cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, CY_RETARGET_IO_BAUDRATE);
     CY_ASSERT(result == CY_RSLT_SUCCESS);
+
+#ifdef CY_BOOT_USE_EXTERNAL_FLASH
+    cy_en_smif_status_t qspi_status = qspi_init_sfdp(QSPI_SLAVE_SELECT_LINE);
+    if (CY_SMIF_SUCCESS == qspi_status) {
+        printf("External Memory initialized w/ SFDP.");
+    } else {
+        printf("External Memory initialization w/ SFDP FAILED: 0x%08"PRIx32, (uint32_t)qspi_status);
+    }
+#endif
 
     /* Initialize the User LED */
     result = cyhal_gpio_init(CYBSP_USER_LED, CYHAL_GPIO_DIR_OUTPUT,

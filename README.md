@@ -32,6 +32,8 @@ The flash layout is defined in
 | App Secondary | External | 0x18000000 | 0x1C0200 | golioth_app |
 | Scratch | External | 0x18440000 | 0x80000 | Used by MCUboot |
 
+The default MCUboot upgrade strategy used is `MCUBOOT_SWAP_USING_SCRATCH`.
+
 Before compiling golioth_app, make sure to set the WiFi SSID and password as
 well as your Golioth PSK-ID and PSK, in `golioth_main.h`:
 

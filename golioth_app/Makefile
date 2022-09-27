@@ -145,9 +145,9 @@ endif
 # Include the mtb.mk file
 -include ./libs/mtb.mk
 
-MCUBOOT_CY_PATH=$(SEARCH_mcuboot)/boot/cypress
+MCUBOOT_PATH=$(SEARCH_mcuboot)
+MCUBOOT_CY_PATH=$(MCUBOOT_PATH)/boot/cypress
 MCUBOOTAPP_PATH=$(MCUBOOT_CY_PATH)/MCUBootApp
-# MBEDTLS_PATH=$(SEARCH_mcuboot)/ext/mbedtls
 
 # Enable optional code that is ordinarily disabled by default.
 #
@@ -168,21 +168,33 @@ DISABLE_COMPONENTS=
 # tree for source code and builds it. The SOURCES variable can be used to
 # manually add source code to the build process from a location not searched
 # by default, or otherwise not found by the build system.
-SOURCES+=$(wildcard $(SEARCH_mcuboot)/boot/bootutil/src/*.c)\
+SOURCES+=$(wildcard $(MCUBOOT_PATH)/boot/bootutil/src/*.c)\
          $(wildcard $(MCUBOOT_CY_PATH)/libs/watchdog/*.c)\
+         $(wildcard $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/*.c)\
          $(wildcard $(MCUBOOT_CY_PATH)/platforms/$(FAMILY)/img_confirm/*.c)
+
+ifeq ($(USE_EXTERNAL_FLASH), 1)
+SOURCES+=\
+    $(wildcard $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/cy_smif_psoc6.c)\
+    $(wildcard $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/flash_qspi/*.c)
+endif
 
 # Like SOURCES, but for include directories. Value should be paths to
 # directories (without a leading -I).
-INCLUDES+=$(SEARCH_mcuboot)/boot/bootutil/include\
-          $(SEARCH_mcuboot)/boot/bootutil/src\
-          $(MCUBOOT_CY_PATH)/cy_flash_pal\
-          $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/include\
-          $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/flash_qspi\
-          $(MCUBOOTAPP_PATH)\
-          $(MCUBOOTAPP_PATH)/config\
-          $(MBEDTLS_PATH)/include\
-          $(MCUBOOT_CY_PATH)/libs/watchdog
+INCLUDES+=\
+    ../bootloader_cm0p/keys\
+    $(MCUBOOT_PATH)/boot/bootutil/include\
+    $(MCUBOOT_PATH)/boot/bootutil/src\
+    $(MCUBOOT_CY_PATH)/cy_flash_pal\
+    $(MCUBOOT_CY_PATH)/cy_flash_pal/sysflash\
+    $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/include\
+    $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/flash_qspi\
+    $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/include/flash_map_backend\
+    $(MCUBOOT_CY_PATH)/libs/retarget_io_pdl\
+    $(MCUBOOTAPP_PATH)\
+    $(MCUBOOTAPP_PATH)/os\
+    ../bootloader_cm0p/config\
+    $(MCUBOOT_CY_PATH)/libs/watchdog
 
 # Add additional defines to the build process (without a leading -D).
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
@@ -193,10 +205,21 @@ DEFINES+=APP_VERSION_MAJOR=$(APP_VERSION_MAJOR) \
          USER_APP_START=$(PRIMARY_IMG_START) \
          USER_APP_SIZE=$(SLOT_SIZE)
 
+# Add defines to enable usage of external flash for secondary or both images (XIP)
+ifeq ($(USE_EXTERNAL_FLASH), 1)
+ifeq ($(USE_XIP), 1)
+DEFINES+=USE_XIP
+endif
+DEFINES+=CY_BOOT_USE_EXTERNAL_FLASH
+DEFINES+=CY_MAX_EXT_FLASH_ERASE_SIZE=$(PLATFORM_CY_MAX_EXT_FLASH_ERASE_SIZE)
+endif
+
 ifeq ($(USE_XIP), 1)
 DEFINES+=USE_XIP
 LD_SUFFIX=_xip
 endif
+
+DEFINES+=PSOC6
 
 # Select softfp or hardfp floating point. Default is softfp.
 VFP_SELECT=
@@ -241,6 +264,8 @@ else
 $(error Only GCC_ARM is supported at this moment)
 endif
 
+CY_HEX_TO_BIN_TOOL="$(CY_CROSSPATH)/bin/arm-none-eabi-objcopy"
+
 ifeq ($(USE_EXTERNAL_FLASH), 1)
 ERASED_VALUE=0xff
 else
@@ -258,7 +283,7 @@ endif
 # Set build directory for BOOT and UPGRADE images
 CY_BUILD_LOCATION=./build/$(IMG_TYPE)
 BINARY_OUT_PATH=$(CY_BUILD_LOC)/$(TARGET)/$(CONFIG)/$(APPNAME)
-IMGTOOL_PATH=$(SEARCH_mcuboot)/scripts/imgtool.py
+IMGTOOL_PATH=$(MCUBOOT_PATH)/scripts/imgtool.py
 CY_BUILD_VERSION=$(APP_VERSION_MAJOR).$(APP_VERSION_MINOR).$(APP_VERSION_BUILD)
 SIGN_ARGS=sign --header-size $(MCUBOOT_HEADER_SIZE) --pad-header --align 1 -v $(CY_BUILD_VERSION) \
                -S $(SLOT_SIZE) -M $(MAX_IMG_SECTORS) $(UPGRADE_TYPE) -R $(ERASED_VALUE) -k $(KEY_FILE_PATH)/$(SIGN_KEY_FILE).pem
@@ -298,7 +323,8 @@ POSTBUILD=\
 cp -f $(BINARY_OUT_PATH).hex $(BINARY_OUT_PATH)_raw.hex;\
 rm -f $(BINARY_OUT_PATH).hex;\
 $(CY_ELF_TO_HEX_TOOL) --change-addresses=$(HEADER_OFFSET) $(CY_ELF_TO_HEX_OPTIONS) $(BINARY_OUT_PATH).elf $(BINARY_OUT_PATH)_unsigned.hex;\
-$(PYTHON_PATH) $(IMGTOOL_PATH) $(SIGN_ARGS) $(BINARY_OUT_PATH)_unsigned.hex $(BINARY_OUT_PATH).hex;
+$(PYTHON_PATH) $(IMGTOOL_PATH) $(SIGN_ARGS) $(BINARY_OUT_PATH)_unsigned.hex $(BINARY_OUT_PATH).hex;\
+$(CY_HEX_TO_BIN_TOOL) --input-target=ihex --output-target=binary $(BINARY_OUT_PATH).hex $(BINARY_OUT_PATH).bin
 
 
 ################################################################################

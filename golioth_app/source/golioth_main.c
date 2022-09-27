@@ -60,9 +60,6 @@
 
 #define TAG "golioth_main"
 
-// Current firmware version
-static const char* _current_version = "1.2.3";
-
 // Configurable via LightDB State at path "desired/my_config"
 int32_t _my_config = 0;
 
@@ -315,7 +312,12 @@ void golioth_main_task(void *arg) {
     // updates from Golioth and automatically update firmware on the device.
     //
     // This is optional, but most real applications will probably want to use this.
-    golioth_fw_update_init(client, _current_version);
+    char current_version[sizeof("999.999.999")];
+    snprintf(current_version, sizeof(current_version), "%d.%d.%d",
+            APP_VERSION_MAJOR,
+            APP_VERSION_MINOR,
+            APP_VERSION_BUILD);
+    golioth_fw_update_init(client, current_version);
 
     // There are a number of different functions you can call to get and set values in
     // LightDB state, based on the type of value (e.g. int, bool, float, string, JSON).
@@ -394,10 +396,6 @@ void golioth_main_task(void *arg) {
     //      "my_int": 42,
     //      "my_string": "asdf"
     // }
-
-    while(true) {
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
 }
 
 /* [] END OF FILE */
