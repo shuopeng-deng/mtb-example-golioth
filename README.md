@@ -1,4 +1,4 @@
-# Golioth App
+# Golioth Example App
 
 This is an example Golioth app, based on https://github.com/Infineon/mtb-example-psoc6-mcuboot-basic.
 It has been tested with the PSoC 6 WiFi BT Prototyping Kit
@@ -22,17 +22,15 @@ You will need to compile and flash the projects separately.
 Typically, you just need to flash the bootloader one time.
 
 The flash layout is defined in
-`bootloader_cm0p/flashmap/psoc62_swap_single_smif.json` and looks like this:
+`bootloader_cm0p/flashmap/psoc62_overwrite_single_smif.json` and looks like this:
 
 | Partition | Flash used | Address | Size | Comment |
 | --- | --- | --- | --- | --- |
 | Bootloader | Internal | 0x10000000 | 0x18000 | MCUboot, bootloader_cm0p |
-| App Primary | Internal | 0x10018000 | 0x1C0200 | golioth_app |
-| Status | Internal | 0x101d8200 | 0x6c00 | Used by MCUboot |
-| App Secondary | External | 0x18000000 | 0x1C0200 | golioth_app |
-| Scratch | External | 0x18440000 | 0x80000 | Used by MCUboot |
+| App Primary | Internal | 0x10018000 | 0x1C0000 | golioth_app |
+| App Secondary | External | 0x18000000 | 0x1C0000 | golioth_app |
 
-The default MCUboot upgrade strategy used is `MCUBOOT_SWAP_USING_SCRATCH`.
+The MCUboot upgrade strategy used is `MCUBOOT_OVERWRITE_ONLY`.
 
 Before compiling golioth_app, make sure to set the WiFi SSID and password as
 well as your Golioth PSK-ID and PSK, in `golioth_main.h`:
@@ -65,10 +63,7 @@ After compiling and running, you should see a output similar to the following:
 ```
 [INF] MCUBoot Bootloader Started
 [INF] External Memory initialized w/ SFDP.
-[INF] Primary image: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
-[INF] Scratch: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
-[INF] Boot source: primary slot
-[INF] boot_swap_type_multi: Primary image: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
+[INF] boot_swap_type_multi: Primary image: magic=good, swap_type=0x1, copy_done=0x2, image_ok=0x2
 [INF] boot_swap_type_multi: Secondary image: magic=unset, swap_type=0x1, copy_done=0x3, image_ok=0x3
 [INF] Swap type: none
 [INF] User Application validated successfully
@@ -76,7 +71,7 @@ After compiling and running, you should see a output similar to the following:
 [INF] Start slot Address: 0x10018400
 [INF] MCUBoot Bootloader finished
 [INF] Deinitializing hardware...
-
+External Memory initialized w/ SFDP.
 =========================================================
 [GoliothApp] Version: 1.0.0, CPU: CM4
 
@@ -92,17 +87,35 @@ Wi-Fi Connection Manager initialized.
 Successfully connected to Wi-Fi network 'WiFiSSID'.
 IP Address Assigned: 192.168.86.250
 Secure Sockets initialized
-I (5438) golioth_main: Waiting to Golioth to connect...
-I (5556) golioth_coap_client: Start CoAP session with host: coaps://coap.golioth.io
-I (5561) libcoap: Setting PSK key
-
-I (5567) golioth_coap_client: Entering CoAP I/O loop
-I (5872) golioth_main: Golioth client connected
-I (6254) golioth_main: Synchronously got my_int = 42
-I (6255) golioth_main: Entering endless loop
-I (6327) golioth_main: Callback got my_int = 42
-I (6643) golioth_main: Setting loop delay to 3 s
+I (5398) golioth_main: Waiting to Golioth to connect...
+I (5430) golioth_coap_client: Start CoAP session with host: coaps://coap.golioth.io
+I (5435) libcoap: Setting PSK key
+I (27481) golioth_coap_client: Entering CoAP I/O loop
+I (27755) golioth_main: Golioth client connected
+I (27870) golioth_fw_update: Current firmware version: 1.0.0
+I (27938) golioth_fw_update: Waiting to receive OTA manifest
+I (28151) golioth_fw_update: Received OTA manifest
+I (28151) golioth_fw_update: Manifest does not contain different firmware version. Nothing to do.
+I (28153) golioth_fw_update: Waiting to receive OTA manifest
+I (28225) golioth_main: Synchronously got my_int = 42
+I (28226) golioth_main: Entering endless loop
+I (28300) golioth_main: Callback got my_int = 42
+I (28567) golioth_main: Setting loop delay to 3 s
 ```
+
+If you want to test OTA firmware updates:
+
+1. Change `APP_VERSION_MAJOR` to `2` in `golioth_app/Makefile`
+2. `make build -j8`
+3. Create a new artifact in Golioth: https://console.golioth.io/artifacts.
+   Upload the file `golioth_app.bin` in the `build` folder, and assign it
+   version `2.0.0`.
+4. Create a new release in Golioth: https://console.golioth.io/releases.
+   Select the artifact created in the step above.
+5. Roll out the release by toggling the slider on the releases page: https://console.golioth.io/releases
+6. The device (currently running version 1.0.0 firmware) will see the new
+   release and start the OTA update process. If all goes well, on the next
+   boot, you'll see that it has booted `[GoliothApp] Version: 2.0.0`.
 
 What follows in the remainder of this README is from the base
 `mtb-example-psoc6-mcuboot-basic` example,
