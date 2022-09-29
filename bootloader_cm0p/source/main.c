@@ -70,7 +70,7 @@
 /* Slave Select line to which the external memory is connected.
  * Acceptable values are:
  * 0 - SMIF disabled (no external memory)
- * 1, 2, 3, or 4 - slave select line to which the memory module is connected. 
+ * 1, 2, 3, or 4 - slave select line to which the memory module is connected.
  */
 #define QSPI_SLAVE_SELECT_LINE              (1UL)
 
@@ -116,7 +116,7 @@ static void hw_deinit(void)
  *  from that address.
  *
  * Parameters:
- *  rsp - Pointer to a structure holding the address to boot from. 
+ *  rsp - Pointer to a structure holding the address to boot from.
  *
  ******************************************************************************/
 static bool do_boot(struct boot_rsp *rsp)
@@ -179,7 +179,7 @@ static bool do_boot(struct boot_rsp *rsp)
  ******************************************************************************
  * Summary:
  *  System entrance point. This function initializes peripherals, initializes
- *  retarget IO, and performs a boot by calling the MCUboot functions. 
+ *  retarget IO, and performs a boot by calling the MCUboot functions.
  *
  * Parameters:
  *  void

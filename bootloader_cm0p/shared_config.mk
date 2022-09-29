@@ -26,7 +26,7 @@
 ################################################################################
 
 # Flashmap JSON file name
-FLASH_MAP=psoc62_swap_single_smif.json
+FLASH_MAP=psoc62_overwrite_single_smif.json
 
 # Device family name. Ex: PSOC6, CYW20289
 FAMILY=PSOC6

@@ -26,7 +26,7 @@
             },
 			"status_address": {
                 "description": "Address of the swap status partition",
-                "value": "0x101d8200"
+                "value": "0x101dc000"
             },
             "status_size": {
                 "description": "Size of the swap status partition",

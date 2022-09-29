@@ -39,7 +39,7 @@
 
 // #define MCUBOOT_SIGN_EC
 
-//#define MCUBOOT_OVERWRITE_ONLY 1
+#define MCUBOOT_OVERWRITE_ONLY 1
 
 /*
  * Upgrade mode
@@ -56,7 +56,7 @@
 /* Using SWAP w Scratch by default.
  * Uncomment which is needed. */
 #define MCUBOOT_SWAP_USING_SCRATCH  1
-/* #define MCUBOOT_SWAP_USING_MOVE     1 */
+// #define MCUBOOT_SWAP_USING_MOVE     1
 #define MCUBOOT_SWAP_USING_STATUS   1
 #endif
 

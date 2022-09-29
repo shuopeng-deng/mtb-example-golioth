@@ -4,7 +4,7 @@
             "flash-size": "0x4000000",
             "erase-size": "0x40000"
         }
-    ], 
+    ],
     "boot_and_upgrade":
         {
         "bootloader": {
@@ -24,7 +24,7 @@
             },
             "size": {
                 "description": "Size of the application primary slot",
-                "value": "0x40000"
+                "value": "0x1C0000"
             },
             "upgrade_address": {
                 "description": "Address of the application secondary slot",
@@ -32,7 +32,7 @@
             },
             "upgrade_size": {
                 "description": "Size of the application secondary slot",
-                "value": "0x40000"
+                "value": "0x1C0000"
             }
         }
     }
