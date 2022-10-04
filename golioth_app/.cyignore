@@ -14,4 +14,6 @@ $(SEARCH_cJSON)/fuzzing
 $(SEARCH_cJSON)/tests
 $(SEARCH_cJSON)/test.c
 
+$(SEARCH_golioth-firmware-sdk)/examples
+$(SEARCH_golioth-firmware-sdk)/external
 $(SEARCH_golioth-firmware-sdk)/port/esp_idf

@@ -196,6 +196,16 @@ INCLUDES+=\
     ../bootloader_cm0p/config\
     $(MCUBOOT_CY_PATH)/libs/watchdog
 
+# Not sure why MTB doesn't pick these up automatically, since they are in libs/
+INCLUDES+=\
+    $(SEARCH_mtb-hal-cat1)/include\
+    $(SEARCH_mtb-hal-cat1)/include_pvt\
+    $(SEARCH_mtb-hal-cat1)/COMPONENT_CAT1A/include\
+    $(SEARCH_capsense)
+SOURCES+=\
+    $(wildcard $(SEARCH_mtb-hal-cat1)/source/*.c)\
+    $(wildcard $(SEARCH_mtb-hal-cat1)/COMPONENT_CAT1A/source/*/*.c)
+
 # Add additional defines to the build process (without a leading -D).
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
 DEFINES=CYBSP_WIFI_CAPABLE CY_RTOS_AWARE CY_RETARGET_IO_CONVERT_LF_TO_CRLF $(PLATFORM) $(MBEDTLSFLAGS)
