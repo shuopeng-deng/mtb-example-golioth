@@ -58,6 +58,9 @@ make build -j8
 make program
 ```
 
+More detailed usage instructions, along with support for other IDEs and tools,
+is available in the [Using the code example](#using-the-code-example) section.
+
 After compiling and running, you should see a output similar to the following:
 
 ```
@@ -139,7 +142,7 @@ Create the project and open it using one of the following:
 
    If you want to use the application for a kit not listed here, you may need to update the source files. If the kit does not have the required resources, the application may not work.
 
-3. In the **Project Creator - Select Application** dialog, choose the example by enabling the checkbox.
+3. In the **Project Creator - Select Application** dialog, choose the example by enabling the checkbox (under the "WiFi" section, or just search for "golioth").
 
 4. (Optional) Change the suggested **New Application Name**.
 
@@ -168,10 +171,10 @@ Argument | Description | Required/optional
 
 <br>
 
-The following example clones the "[mtb-example-psoc6-mcuboot-basic](https://github.com/Infineon/mtb-example-psoc6-mcuboot-basic)" application with the desired name "Psoc6Mcuboot" configured for the *CY8CPROTO-062-4343W* BSP into the specified working directory, *C:/mtb_projects*:
+The following example clones the "[mtb-example-golioth](https://github.com/golioth/mtb-example-golioth)" application with the desired name "Psoc6Golioth" configured for the *CY8CPROTO-062-4343W* BSP into the specified working directory, *C:/mtb_projects*:
 
    ```
-   project-creator-cli --board-id CY8CPROTO-062-4343W --app-id mtb-example-psoc6-mcuboot-basic --user-app-name Psoc6Mcuboot --target-dir "C:/mtb_projects"
+   project-creator-cli --board-id CY8CPROTO-062-4343W --app-id mtb-example-golioth --user-app-name Psoc6Golioth --target-dir "C:/mtb_projects"
    ```
 
 **Note:** The project-creator-cli tool uses the `git clone` and `make getlibs` commands to fetch the repository and import the required libraries. For details, see the "Project creator tools" section of the [ModusToolbox&trade; software user guide](https://www.cypress.com/ModusToolboxUserGuide) (locally available at *{ModusToolbox&trade; software install directory}/docs_{version}/mtb_user_guide.pdf*).
@@ -192,9 +195,9 @@ Argument | Description | Required/optional
 Following example adds the CY8CPROTO-062-4343W BSP to the already created application and makes it the active BSP for the app:
 
    ```
-   library-manager-cli --project "C:/mtb_projects/Psoc6Mcuboot" --add-bsp-name CY8CPROTO-062-4343W --add-bsp-version "latest-v4.X" --add-bsp-location "local"
+   library-manager-cli --project "C:/mtb_projects/Psoc6Golioth" --add-bsp-name CY8CPROTO-062-4343W --add-bsp-version "latest-v4.X" --add-bsp-location "local"
 
-   library-manager-cli --project "C:/mtb_projects/Psoc6Mcuboot" --set-active-bsp APP_CY8CPROTO-062-4343W
+   library-manager-cli --project "C:/mtb_projects/Psoc6Golioth" --set-active-bsp APP_CY8CPROTO-062-4343W
    ```
 
 </details>
