@@ -10,13 +10,13 @@
 # \copyright
 # Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company)
 # SPDX-License-Identifier: Apache-2.0
-#
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+# 
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ MCUBOOT_PATH=$(SEARCH_mcuboot)
 MBEDTLS_PATH=$(MCUBOOT_PATH)/ext/mbedtls
 
 SOURCES+=$(wildcard $(MBEDTLS_PATH)/library/*.c)\
-
+     
 INCLUDES+=\
      $(MBEDTLS_PATH)/include\
      $(MBEDTLS_PATH)/library\
@@ -57,12 +57,12 @@ SOURCES+=\
     $(MCUBOOTAPP_PATH)/cy_serial_flash_prog.c
 
 # Do not include QSPI API from flash PAL when external flash is not used.
-ifeq ($(USE_EXTERNAL_FLASH), 1)
+ifeq ($(USE_EXTERNAL_FLASH), 1)  
 SOURCES+=\
     $(wildcard $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/cy_smif_psoc6.c)\
     $(wildcard $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/flash_qspi/*.c)
 endif
-
+    
 INCLUDES+=\
     ./keys\
     $(MCUBOOT_PATH)/boot/bootutil/include\
@@ -73,7 +73,7 @@ INCLUDES+=\
     $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/flash_qspi\
     $(MCUBOOT_CY_PATH)/cy_flash_pal/flash_psoc6/include/flash_map_backend\
     $(MCUBOOT_CY_PATH)/libs/retarget_io_pdl\
-    $(MCUBOOTAPP_PATH)\
+	$(MCUBOOTAPP_PATH)\
     $(MCUBOOTAPP_PATH)/os\
-    ./config\
+    $(MCUBOOTAPP_PATH)/config\
     $(MCUBOOT_CY_PATH)/libs/watchdog

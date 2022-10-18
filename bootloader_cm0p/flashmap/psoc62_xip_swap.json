@@ -41,7 +41,7 @@
             },
             "size": {
                 "description": "Size of the application primary slot",
-                "value": "0x1C0000"
+                "value": "0x40200"
             },
             "upgrade_address": {
                 "description": "Address of the application secondary slot",
@@ -49,7 +49,7 @@
             },
             "upgrade_size": {
                 "description": "Size of the application secondary slot",
-                "value": "0x1C0000"
+                "value": "0x40200"
             }
         }
     }

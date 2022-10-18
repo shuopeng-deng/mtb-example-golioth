@@ -89,9 +89,19 @@ int main(void)
 {
     cy_rslt_t result;
 
+    /* Update watchdog timer to mark successful start up of application */
+    cy_wdg_kick();
+    cy_wdg_free();
+
     /* Initialize the device and board peripherals */
     result = cybsp_init();
     CY_ASSERT(result == CY_RSLT_SUCCESS);
+
+    /* Free the hardware instance object iff initialized by other core
+     * before initializing the same hardware instance object in this core. */
+    cyhal_hwmgr_free(&CYBSP_UART_obj);
+    cyhal_hwmgr_free(&CYBSP_DEBUG_UART_RX_obj);
+    cyhal_hwmgr_free(&CYBSP_DEBUG_UART_TX_obj);
 
     /* Enable global interrupts */
     __enable_irq();
@@ -121,9 +131,6 @@ int main(void)
            APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_BUILD);
     printf("\n=========================================================\n");
 
-    /* Update watchdog timer to mark successful start up of application */
-    cy_wdg_kick();
-    cy_wdg_free();
     printf("[GoliothApp] Watchdog timer started by the bootloader is now turned off to mark the successful start of Golioth app.\r\n");
 
     printf("[GoliothApp] User LED toggles at %d msec interval\r\n\n", LED_TOGGLE_INTERVAL_MS);

@@ -44,6 +44,8 @@
 #include "cycfg.h"
 #include "cy_result.h"
 #include "cy_retarget_io_pdl.h"
+#include "cyhal.h"
+#include "cybsp.h"
 
 #include "cycfg_clocks.h"
 #include "cycfg_peripherals.h"
@@ -70,7 +72,7 @@
 /* Slave Select line to which the external memory is connected.
  * Acceptable values are:
  * 0 - SMIF disabled (no external memory)
- * 1, 2, 3, or 4 - slave select line to which the memory module is connected.
+ * 1, 2, 3, or 4 - slave select line to which the memory module is connected. 
  */
 #define QSPI_SLAVE_SELECT_LINE              (1UL)
 
@@ -100,8 +102,8 @@ static void hw_deinit(void)
 {
     cy_retarget_io_wait_tx_complete(CYBSP_UART_HW, 10);
     cy_retarget_io_pdl_deinit();
-    Cy_GPIO_Port_Deinit(CYBSP_UART_RX_PORT);
-    Cy_GPIO_Port_Deinit(CYBSP_UART_TX_PORT);
+    Cy_GPIO_Port_Deinit(CYBSP_DEBUG_UART_RX_PORT);
+    Cy_GPIO_Port_Deinit(CYBSP_DEBUG_UART_TX_PORT);
 #if defined(CY_BOOT_USE_EXTERNAL_FLASH) && !defined(MCUBOOT_ENC_IMAGES_XIP) && !defined(USE_XIP)
     qspi_deinit(QSPI_SLAVE_SELECT_LINE);
 #endif
@@ -116,7 +118,7 @@ static void hw_deinit(void)
  *  from that address.
  *
  * Parameters:
- *  rsp - Pointer to a structure holding the address to boot from.
+ *  rsp - Pointer to a structure holding the address to boot from. 
  *
  ******************************************************************************/
 static bool do_boot(struct boot_rsp *rsp)
@@ -179,7 +181,7 @@ static bool do_boot(struct boot_rsp *rsp)
  ******************************************************************************
  * Summary:
  *  System entrance point. This function initializes peripherals, initializes
- *  retarget IO, and performs a boot by calling the MCUboot functions.
+ *  retarget IO, and performs a boot by calling the MCUboot functions. 
  *
  * Parameters:
  *  void
@@ -209,7 +211,7 @@ int main(void)
 #endif
 
     /* Initialize system resources and peripherals. */
-    init_cycfg_all();
+    cybsp_init();
 
     /* enable interrupts */
     __enable_irq();
@@ -217,6 +219,7 @@ int main(void)
     /* Initialize retarget-io to redirect the printf output */
     cy_retarget_io_pdl_init(CY_RETARGET_IO_BAUDRATE);
 
+    BOOT_LOG_INF("\x1b[2J\x1b[;H");
     BOOT_LOG_INF("MCUBoot Bootloader Started");
 
 #ifdef CY_BOOT_USE_EXTERNAL_FLASH

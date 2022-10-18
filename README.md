@@ -4,6 +4,8 @@ This is an example Golioth app, based on https://github.com/Infineon/mtb-example
 It has been tested with the PSoC 6 WiFi BT Prototyping Kit
 (CY8CPROTO-062-4343W).
 
+This example requires ModusToolbox 3.0.0.
+
 This example supports all Golioth services, including Over-the-Air firmware
 updates:
 
@@ -46,16 +48,16 @@ Compile and flash the bootloader:
 
 ```
 cd bootloader_cm0p
-make build -j8
-make program
+make build_proj -j8
+make program_proj
 ```
 
 Compile and flash the Golioth app:
 
 ```
 cd golioth_app
-make build -j8
-make program
+make build_proj -j8
+make program_proj
 ```
 
 More detailed usage instructions, along with support for other IDEs and tools,
@@ -108,8 +110,8 @@ I (28567) golioth_main: Setting loop delay to 3 s
 
 If you want to test OTA firmware updates:
 
-1. Change `APP_VERSION_MAJOR` to `2` in `golioth_app/Makefile`
-2. `make build -j8`
+1. Change `APP_VERSION_MAJOR` for the `BOOT` image to `2` in `golioth_app/Makefile`
+2. `make build_proj -j8`
 3. Create a new artifact in Golioth: https://console.golioth.io/artifacts.
    Upload the file `golioth_app.bin` in the `build` folder, and assign it
    version `2.0.0`.

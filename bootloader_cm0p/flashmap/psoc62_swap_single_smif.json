@@ -4,7 +4,7 @@
             "flash-size": "0x4000000",
             "erase-size": "0x40000"
         }
-    ],
+    ], 
     "boot_and_upgrade":
         {
         "bootloader": {
@@ -18,7 +18,7 @@
             },
             "scratch_address": {
                 "description": "Address of the scratch area",
-                "value": "0x18440000"
+                "value": "0x18440000" 
             },
             "scratch_size": {
                 "description": "Size of the scratch area",
@@ -26,11 +26,11 @@
             },
 			"status_address": {
                 "description": "Address of the swap status partition",
-                "value": "0x101dc000"
+                "value": "0x10058200"
             },
             "status_size": {
                 "description": "Size of the swap status partition",
-                "value": "0x6c00"
+                "value": "0x2400"
             }
         },
         "application_1": {
@@ -40,7 +40,7 @@
             },
             "size": {
                 "description": "Size of the application primary slot",
-                "value": "0x1C0200"
+                "value": "0x40200"
             },
             "upgrade_address": {
                 "description": "Address of the application secondary slot",
@@ -48,7 +48,7 @@
             },
             "upgrade_size": {
                 "description": "Size of the application secondary slot",
-                "value": "0x1C0200"
+                "value": "0x40200"
             }
         }
     }
