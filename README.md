@@ -44,6 +44,16 @@ well as your Golioth PSK-ID and PSK, in `golioth_main.h`:
 #define GOLIOTH_PSK "supersecret"
 ```
 
+You will need to install python modules from MCUboot in order for
+application image signing to succeed (one time only):
+
+```
+cd ../../<mtb_shared>/mcuboot/<tag>/scripts
+python -m pip install -r requirements.txt
+```
+
+Now you are ready to build the bootloader and app projects.
+
 Compile and flash the bootloader:
 
 ```
