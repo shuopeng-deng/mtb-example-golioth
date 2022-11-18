@@ -195,30 +195,10 @@ static golioth_rpc_status_t on_double(
     return RPC_OK;
 }
 
-static golioth_settings_status_t on_setting(
-        const char* key,
-        const golioth_settings_value_t* value) {
-    GLTH_LOGD(TAG, "Received setting: key = %s, type = %d", key, value->type);
-
-    if (0 == strcmp(key, "LOOP_DELAY_S")) {
-        // This setting is expected to be an int, return an error if it's not
-        if (value->type != GOLIOTH_SETTINGS_VALUE_TYPE_INT) {
-            return GOLIOTH_SETTINGS_VALUE_FORMAT_NOT_VALID;
-        }
-
-        // This setting must be in range [1, 100], return an error if it's not
-        if (value->i32 < 1 || value->i32 > 100) {
-            return GOLIOTH_SETTINGS_VALUE_OUTSIDE_RANGE;
-        }
-
-        // Setting has passed all checks, so apply it to the loop delay
-        GLTH_LOGI(TAG, "Setting loop delay to %"PRId32" s", value->i32);
-        _loop_delay_s = value->i32;
-        return GOLIOTH_SETTINGS_SUCCESS;
-    }
-
-    // If the setting is not recognized, we should return an error
-    return GOLIOTH_SETTINGS_KEY_NOT_RECOGNIZED;
+static golioth_settings_status_t on_loop_delay_setting(int32_t new_value, void* arg) {
+    GLTH_LOGI(TAG, "Setting loop delay to %" PRId32 " s", new_value);
+    _loop_delay_s = new_value;
+    return GOLIOTH_SETTINGS_SUCCESS;
 }
 
 void golioth_main_task(void *arg) {
@@ -278,21 +258,42 @@ void golioth_main_task(void *arg) {
     //      Logging
     //      Over-the-Air (OTA) firmware updates
     //      LightDB state
-    //      LightDB stream
+    //      LightDB Stream
 
-    // We'll start by logging a message to Golioth.
+    // You can use any of the GLTH_LOGX macros (e.g. GLTH_LOGI, GLTH_LOGE),
+    // to log a message to stdout.
     //
-    // This is an "asynchronous" function, meaning that this log message will be
-    // copied into a queue for later transmission by the client task, and this function
-    // will return immediately. Any functions provided by this SDK ending in _async
-    // will have the same meaning.
-    //
-    // The last two arguments are for an optional callback, in case the user wants to
-    // be notified of when the log has been received by the Golioth server. In this
-    // case we set them to NULL, which makes this a "fire-and-forget" log request.
-    golioth_log_info_async(client, "app_main", "Hello, World!", NULL, NULL);
+    // If you've set CONFIG_GOLIOTH_AUTO_LOG_TO_CLOUD to 1, then the message
+    // will also be uploaded to the Golioth Logging Service, which you can
+    // view at console.golioth.io.
+    GLTH_LOGI(TAG, "Hello, Golioth!");
 
-    // We can also log messages "synchronously", meaning the function will block
+    // For OTA, we will spawn a background task that will listen for firmware
+    // updates from Golioth and automatically update firmware on the device
+    char current_version[sizeof("999.999.999")];
+    snprintf(current_version, sizeof(current_version), "%d.%d.%d",
+            APP_VERSION_MAJOR,
+            APP_VERSION_MINOR,
+            APP_VERSION_BUILD);
+    golioth_fw_update_init(client, current_version);
+
+    // There are a number of different functions you can call to get and set values in
+    // LightDB state, based on the type of value (e.g. int, bool, float, string, JSON).
+    //
+    // This is an "asynchronous" function, meaning that the function will return
+    // immediately and the integer will be sent to Golioth at a later time.
+    // Internally, the request is added to a queue which is processed
+    // by the Golioth client task.
+    //
+    // Any functions provided by this SDK ending in _async behave the same way.
+    //
+    // The last two arguments are for an optional callback function and argument,
+    // in case the user wants to be notified when the set request has completed
+    // and received acknowledgement from the Golioth server. In this case
+    // we set them to NULL, which makes this a "fire-and-forget" request.
+    golioth_lightdb_set_int_async(client, "my_int", 42, NULL, NULL);
+
+    // We can also send requests "synchronously", meaning the function will block
     // until one of 3 things happen (whichever comes first):
     //
     //  1. We receive a response to the request from the server
@@ -303,26 +304,7 @@ void golioth_main_task(void *arg) {
     // We'll check the return code to know whether a timeout happened.
     //
     // Any function provided by this SDK ending in _sync will have the same meaning.
-    golioth_status_t status = golioth_log_warn_sync(client, "app_main", "Sync log", 5);
-    if (status != GOLIOTH_OK) {
-        GLTH_LOGE(TAG, "Error in golioth_log_warn_sync: %s", golioth_status_to_str(status));
-    }
-
-    // For OTA, we will spawn a background task that will listen for firmware
-    // updates from Golioth and automatically update firmware on the device.
-    //
-    // This is optional, but most real applications will probably want to use this.
-    char current_version[sizeof("999.999.999")];
-    snprintf(current_version, sizeof(current_version), "%d.%d.%d",
-            APP_VERSION_MAJOR,
-            APP_VERSION_MINOR,
-            APP_VERSION_BUILD);
-    golioth_fw_update_init(client, current_version);
-
-    // There are a number of different functions you can call to get and set values in
-    // LightDB state, based on the type of value (e.g. int, bool, float, string, JSON).
-    golioth_lightdb_set_int_async(client, "my_int", 42, NULL, NULL);
-    status = golioth_lightdb_set_string_sync(client, "my_string", "asdf", 4, 5);
+    golioth_status_t status = golioth_lightdb_set_string_sync(client, "my_string", "asdf", 4, 5);
     if (status != GOLIOTH_OK) {
         GLTH_LOGE(TAG, "Error setting string: %s", golioth_status_to_str(status));
     }
@@ -331,7 +313,7 @@ void golioth_main_task(void *arg) {
     int32_t readback_int = 0;
     status = golioth_lightdb_get_int_sync(client, "my_int", &readback_int, 5);
     if (status == GOLIOTH_OK) {
-        GLTH_LOGI(TAG, "Synchronously got my_int = %"PRId32, readback_int);
+        GLTH_LOGI(TAG, "Synchronously got my_int = %" PRId32, readback_int);
     } else {
         GLTH_LOGE(TAG, "Synchronous get my_int failed: %s", golioth_status_to_str(status));
     }
@@ -355,7 +337,7 @@ void golioth_main_task(void *arg) {
     // Once set, the on_my_config callback function should be called here.
     golioth_lightdb_observe_async(client, "desired/my_config", on_my_config, NULL);
 
-    // LightDB stream functions are nearly identical to LightDB state.
+    // LightDB Stream functions are nearly identical to LightDB state.
     golioth_lightdb_stream_set_int_async(client, "my_stream_int", 15, NULL, NULL);
 
     // We can register Remote Procedure Call (RPC) methods. RPCs allow
@@ -366,24 +348,18 @@ void golioth_main_task(void *arg) {
     golioth_rpc_register(client, "double", on_double, NULL);
 
     // We can register a callback for persistent settings. The Settings service
-    // allows remote users to manage and push settings to devices that will
-    // be stored in device flash.
-    //
-    // When the cloud has new settings for us, the on_setting function will be called
-    // for each setting.
-    golioth_settings_register_callback(client, on_setting);
+    // allows remote users to manage and push settings to devices.
+    golioth_settings_register_int(client, "LOOP_DELAY_S", on_loop_delay_setting, NULL);
 
     // Now we'll just sit in a loop and update a LightDB state variable every
     // once in a while.
     GLTH_LOGI(TAG, "Entering endless loop");
     int32_t counter = 0;
-    char sbuf[32];
     while (1) {
         golioth_lightdb_set_int_async(client, "counter", counter, NULL, NULL);
-        snprintf(sbuf, sizeof(sbuf), "Sending hello! %"PRId32, counter);
-        golioth_log_info_async(client, "app_main", sbuf, NULL, NULL);
+        GLTH_LOGI(TAG, "Sending hello! %" PRId32, counter);
         counter++;
-        vTaskDelay(_loop_delay_s * 1000 / portTICK_PERIOD_MS);
+        golioth_sys_msleep(_loop_delay_s * 1000);
     };
 
     // That pretty much covers the basics of this SDK!
