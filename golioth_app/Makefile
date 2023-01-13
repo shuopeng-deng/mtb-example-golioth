@@ -135,6 +135,8 @@ MCUBOOT_PATH=$(SEARCH_mcuboot)
 MCUBOOT_CY_PATH=$(MCUBOOT_PATH)/boot/cypress
 MCUBOOTAPP_PATH=$(MCUBOOT_CY_PATH)/MCUBootApp
 
+GOLIOTHSDK_PATH=$(SEARCH_golioth-firmware-sdk)
+
 # Enable optional code that is ordinarily disabled by default.
 #
 # Available components depend on the specific targeted hardware and firmware
@@ -183,7 +185,8 @@ INCLUDES+=\
     $(MCUBOOTAPP_PATH)\
     $(MCUBOOTAPP_PATH)/os\
     ../bootloader_cm0p/config\
-    $(MCUBOOT_CY_PATH)/libs/watchdog
+    $(MCUBOOT_CY_PATH)/libs/watchdog\
+    $(GOLIOTHSDK_PATH)/external/heatshrink
 
 # Not sure why MTB doesn't pick these up automatically, since they are in libs/
 INCLUDES+=\
@@ -193,7 +196,8 @@ INCLUDES+=\
     $(SEARCH_capsense)
 SOURCES+=\
     $(wildcard $(SEARCH_mtb-hal-cat1)/source/*.c)\
-    $(wildcard $(SEARCH_mtb-hal-cat1)/COMPONENT_CAT1A/source/*/*.c)
+    $(wildcard $(SEARCH_mtb-hal-cat1)/COMPONENT_CAT1A/source/*/*.c)\
+    $(GOLIOTHSDK_PATH)/external/heatshrink/heatshrink_decoder.c
 
 # Add additional defines to the build process (without a leading -D).
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
