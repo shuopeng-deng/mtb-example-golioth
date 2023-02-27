@@ -186,7 +186,12 @@ INCLUDES+=\
     $(MCUBOOTAPP_PATH)/os\
     ../bootloader_cm0p/config\
     $(MCUBOOT_CY_PATH)/libs/watchdog\
-    $(GOLIOTHSDK_PATH)/external/heatshrink
+    $(GOLIOTHSDK_PATH)/external/heatshrink/include\
+    $(GOLIOTHSDK_PATH)/external/heatshrink/src\
+    $(GOLIOTHSDK_PATH)/external/miniz\
+    $(GOLIOTHSDK_PATH)/port/common/miniz\
+    $(GOLIOTHSDK_PATH)/external/bsdiff\
+    $(GOLIOTHSDK_PATH)/examples/common
 
 # Not sure why MTB doesn't pick these up automatically, since they are in libs/
 INCLUDES+=\
@@ -197,7 +202,9 @@ INCLUDES+=\
 SOURCES+=\
     $(wildcard $(SEARCH_mtb-hal-cat1)/source/*.c)\
     $(wildcard $(SEARCH_mtb-hal-cat1)/COMPONENT_CAT1A/source/*/*.c)\
-    $(GOLIOTHSDK_PATH)/external/heatshrink/heatshrink_decoder.c
+    $(GOLIOTHSDK_PATH)/external/heatshrink/src/heatshrink_decoder.c\
+    $(GOLIOTHSDK_PATH)/external/miniz/miniz_tinfl.c\
+    $(GOLIOTHSDK_PATH)/external/bsdiff/bspatch.c
 
 # Add additional defines to the build process (without a leading -D).
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
@@ -208,6 +215,7 @@ DEFINES+=APP_VERSION_MAJOR=$(APP_VERSION_MAJOR) \
          USER_APP_START=$(PRIMARY_IMG_START) \
          USER_APP_SIZE=$(SLOT_SIZE)
 DEFINES+=CONFIG_GOLIOTH_USER_CONFIG_INCLUDE='"golioth_user_config.h"'
+DEFINES+=HEATSHRINK_DYNAMIC_ALLOC=0
 
 # Add defines to enable usage of external flash for secondary or both images (XIP)
 ifeq ($(USE_EXTERNAL_FLASH), 1)
