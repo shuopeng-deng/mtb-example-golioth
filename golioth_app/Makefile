@@ -49,24 +49,25 @@ VERBOSE=
 include ../bootloader_cm0p/shared_config.mk
 
 # Python path definition
-ifeq ($(OS),Windows_NT)
-PYTHON_PATH?=python
-else
-PYTHON_PATH?=python3
-endif
-
-.PHONY: generate_flashmap_cm4
+CY_PYTHON_REQUIREMENT=true
 
 # Python command to generate flashmap header file from flashmap JSON file
 ifneq ($(FLASH_MAP), )
-generate_flashmap_cm4:
+FORCE:
+.PHONY: FORCE
+flashmap.mk: FORCE
 	@echo -e "\n==============================================================================================================================================================="
 	@echo -e "= Generating flashmap.mk using $(FLASH_MAP) file (Look out for any warnings or errors in this step) ="
 	@echo -e "==============================================================================================================================================================="
-	$(PYTHON_PATH) ../bootloader_cm0p/scripts/flashmap.py -p $(PLATFORM) -i ../bootloader_cm0p/flashmap/$(FLASH_MAP) -o ./source/cy_flash_map.h -d 1 > ./flashmap.mk
+	@$(if $(SEARCH_core-make),$(CY_PYTHON_PATH),true) ../bootloader_cm0p/scripts/flashmap.py -p $(PLATFORM) -i ../bootloader_cm0p/flashmap/$(FLASH_MAP) -o ./source/cy_flash_map.h -d 1 > ./flashmap.mk.tmp
 	@echo -e "===============================================================================================================================================================\n"
+	@if ! cmp -s "flashmap.mk.tmp" "flashmap.mk"; then \
+		mv -f "flashmap.mk.tmp" "flashmap.mk"; \
+	else \
+		rm -f "flashmap.mk.tmp"; \
+	fi
 
--include ./flashmap.mk
+-include flashmap.mk
 endif
 
 # Supported values: BOOT, UPGRADE
@@ -127,9 +128,6 @@ endif
 ################################################################################
 # Advanced Configuration
 ################################################################################
-
-# Include the mtb.mk file
--include ./libs/mtb.mk
 
 MCUBOOT_PATH=$(SEARCH_mcuboot)
 MCUBOOT_CY_PATH=$(MCUBOOT_PATH)/boot/cypress
@@ -311,17 +309,7 @@ else
 endif
 endif
 
-# Python path definition
-ifeq ($(OS),Windows_NT)
-PYTHON_PATH?=python
-else
-PYTHON_PATH?=python3
-endif
-
-PREBUILD_VAR=+\
-$(MAKE) generate_flashmap_cm4;\
-
-PREBUILD=$(PREBUILD_VAR)
+PREBUILD=
 
 # Custom post-build commands to run.
 # 1. Take a backup of the original hex file (_raw.hex)
@@ -340,7 +328,7 @@ POSTBUILD=\
 cp -f $(BINARY_OUT_PATH).hex $(BINARY_OUT_PATH)_raw.hex;\
 rm -f $(BINARY_OUT_PATH).hex;\
 $(CY_ELF_TO_HEX_TOOL) --change-addresses=$(HEADER_OFFSET) $(CY_ELF_TO_HEX_OPTIONS) $(BINARY_OUT_PATH).elf $(BINARY_OUT_PATH)_unsigned.hex;\
-$(PYTHON_PATH) $(IMGTOOL_PATH) $(SIGN_ARGS) $(BINARY_OUT_PATH)_unsigned.hex $(BINARY_OUT_PATH).hex;\
+$(CY_PYTHON_PATH) $(IMGTOOL_PATH) $(SIGN_ARGS) $(BINARY_OUT_PATH)_unsigned.hex $(BINARY_OUT_PATH).hex;\
 $(CY_HEX_TO_BIN_TOOL) --input-target=ihex --output-target=binary $(BINARY_OUT_PATH).hex $(BINARY_OUT_PATH).bin
 
 

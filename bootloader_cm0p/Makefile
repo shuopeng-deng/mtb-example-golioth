@@ -46,24 +46,25 @@ VERBOSE=
 include ./shared_config.mk
 
 # Python path definition
-ifeq ($(OS),Windows_NT)
-PYTHON_PATH?=python
-else
-PYTHON_PATH?=python3
-endif
-
-.PHONY: generate_flashmap_cm0p
+CY_PYTHON_REQUIREMENT=true
 
 # Python command to generate flashmap header file from flashmap JSON file
 ifneq ($(FLASH_MAP), )
-generate_flashmap_cm0p:
+FORCE:
+.PHONY: FORCE
+flashmap.mk: FORCE
 	@echo -e "\n============================================================="
 	@echo -e "= Generating cy_flash_map.h and flashmap.mk using $(FLASH_MAP) file (Look out for any warnings or errors in this step) ="
 	@echo -e "============================================================="
-	$(PYTHON_PATH) ./scripts/flashmap.py -p $(PLATFORM) -i ./flashmap/$(FLASH_MAP) -o ./source/cy_flash_map.h > ./flashmap.mk
+	@$(if $(SEARCH_core-make),$(CY_PYTHON_PATH),true) ./scripts/flashmap.py -p $(PLATFORM) -i ./flashmap/$(FLASH_MAP) -o ./source/cy_flash_map.h > ./flashmap.mk.tmp
 	@echo -e "=============================================================\n"
-    
--include ./flashmap.mk
+	@if ! cmp -s "flashmap.mk.tmp" "flashmap.mk"; then \
+		mv -f "flashmap.mk.tmp" "flashmap.mk"; \
+	else \
+		rm -f "flashmap.mk.tmp"; \
+	fi
+
+-include flashmap.mk
 endif
 
 
@@ -151,28 +152,7 @@ LDLIBS=
 
 
 # Custom pre-build commands to run.
-# MCUboot uses submodules and "make getlibs" currently does not support
-# fetching submodules.
-# The PREBUILD command fetches the submodules only if the content of the 
-# "mcuboot/ext/mbedtls" directory is empty. 
-#
-# QSPI memory configuration files (cycfg_qspi_memslot.c/.h) are not
-# auto-generated since QSPI is not enabled by default in design.modus. 
-# The second pre-build step invokes the QSPI Configurator tool to generate the
-# files from design.cyqspi file, under GeneratedSource directory. This
-# configuration is used by the programmer to program the external flash. 
-# See cy_serial_flash_prog.c file for details. 
-PREBUILD_VAR=+\
-@if [ -n "$$(ls -A $(MBEDTLS_PATH) 2>/dev/null)" ]; then\
-    echo "Git submodules for MCUboot exist. Skipping this step...";\
-    else\
-    echo "Initializing Git Submodules for MCUboot";\
-    cd libs/mcuboot;git submodule update --init --recursive;\
-fi;\
-$(MAKE) generate_flashmap_cm0p;\
-$(CY_INTERNAL_TOOLS)/qspi-configurator/qspi-configurator-cli --config $(wildcard ../bsps/TARGET_$(TARGET)/config/*.cyqspi);\
-
-PREBUILD=$(PREBUILD_VAR)
+PREBUILD=
 
 # Custom post-build commands to run.
 POSTBUILD=
